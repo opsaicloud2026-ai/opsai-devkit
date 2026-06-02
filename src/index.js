@@ -2,7 +2,7 @@
 
 import { instalarFerramentas } from './install.js';
 import { perguntarConfiguracao } from './prompts.js';
-import { prepararProjeto } from './setup.js';
+import { copyResolveSkill, prepararProjeto } from './setup.js';
 
 async function main() {
   console.log('OpsAI Setup');
@@ -37,6 +37,8 @@ async function main() {
     ...configuracao,
     ...instalacao,
   });
+
+  await copyResolveSkill();
 
   console.log('Setup concluido.');
 }

@@ -1,11 +1,11 @@
 # AGENTS.md
 
-Gerado pelo `opsai-setup` em 2026-06-02T23:18:43.018Z.
+Gerado pelo `opsai-setup` em 2026-06-02T23:33:49.278Z.
 
 ## Projeto
 
 - Nome: TODO: preencher nome do projeto
-- Data: 2026-06-02T23:18:43.018Z
+- Data: 2026-06-02T23:33:49.278Z
 - Agentes configurados: Claude Code, Codex, Kimi, Antigravity, GitHub Copilot
 - Repositorio de skills: tech-leads-club
 

@@ -1,12 +1,19 @@
 import { confirm } from '@inquirer/prompts';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
+import { homedir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const VERSAO = '0.1.0';
 const DIRETORIO_ATUAL = path.dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_AGENTS = path.join(DIRETORIO_ATUAL, '..', 'templates', 'AGENTS.md');
+const RESOLVE_SKILL_ORIGEM = path.join(
+  DIRETORIO_ATUAL,
+  '..',
+  'skills',
+  'cy-resolve-skills',
+);
 
 function aplicarTemplate(template, variaveis) {
   return template
@@ -62,6 +69,116 @@ async function salvarEstado({
 
   await writeFile(estadoPath, `${JSON.stringify(estado, null, 2)}\n`, 'utf8');
   console.log('.opsai-setup.json salvo.');
+}
+
+function normalizarAgente(agente) {
+  return agente
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+function lerOpcaoSkillsDir(argv) {
+  const indice = argv.indexOf('--skills-dir');
+  if (indice >= 0) {
+    return argv[indice + 1];
+  }
+
+  const opcaoComValor = argv.find((arg) => arg.startsWith('--skills-dir='));
+  if (opcaoComValor) {
+    return opcaoComValor.slice('--skills-dir='.length);
+  }
+
+  return null;
+}
+
+function resolverDiretorioSkills(agente, { raizProjeto, argv }) {
+  const agenteNormalizado = normalizarAgente(agente);
+
+  if (agenteNormalizado === 'claude-code') {
+    return path.join(raizProjeto, '.claude', 'skills');
+  }
+
+  if (agenteNormalizado === 'codex') {
+    return path.join(raizProjeto, '.codex', 'skills');
+  }
+
+  if (agenteNormalizado === 'kimi') {
+    const skillsDir = lerOpcaoSkillsDir(argv);
+    if (!skillsDir) {
+      console.warn('Kimi selecionado, mas --skills-dir nao foi informado. Pulando.');
+      return null;
+    }
+
+    return path.resolve(raizProjeto, skillsDir);
+  }
+
+  if (agenteNormalizado === 'antigravity') {
+    return path.join(homedir(), '.gemini', 'skills');
+  }
+
+  if (
+    agenteNormalizado === 'github-copilot'
+    || agenteNormalizado === 'copilot'
+  ) {
+    return path.join(raizProjeto, '.github', 'skills');
+  }
+
+  console.warn(`Diretorio de skills desconhecido para ${agente}. Pulando.`);
+  return null;
+}
+
+export async function copyResolveSkill({
+  raizProjeto = process.cwd(),
+  argv = process.argv.slice(2),
+} = {}) {
+  const estadoPath = path.join(raizProjeto, '.opsai-setup.json');
+
+  if (!existsSync(estadoPath)) {
+    console.warn('.opsai-setup.json nao encontrado. Pulando cy-resolve-skills.');
+    return;
+  }
+
+  if (!existsSync(RESOLVE_SKILL_ORIGEM)) {
+    console.warn('Skill cy-resolve-skills nao encontrada no opsai-setup. Pulando.');
+    return;
+  }
+
+  let estado;
+  try {
+    estado = JSON.parse(await readFile(estadoPath, 'utf8'));
+  } catch (erro) {
+    const detalhe = erro?.message ? ` ${erro.message}` : '';
+    console.warn(`Falha ao ler .opsai-setup.json.${detalhe}`);
+    return;
+  }
+
+  const agentes = Array.isArray(estado.agentes) ? estado.agentes : [];
+
+  for (const agente of agentes) {
+    const skillsDir = resolverDiretorioSkills(agente, { raizProjeto, argv });
+    if (!skillsDir) {
+      continue;
+    }
+
+    const destino = path.join(skillsDir, 'cy-resolve-skills');
+
+    if (existsSync(destino)) {
+      console.log(`cy-resolve-skills ja instalada para ${agente}`);
+      continue;
+    }
+
+    try {
+      await mkdir(skillsDir, { recursive: true });
+      await cp(RESOLVE_SKILL_ORIGEM, destino, { recursive: true });
+      console.log(`cy-resolve-skills instalada para ${agente}`);
+    } catch (erro) {
+      const detalhe = erro?.message ? ` ${erro.message}` : '';
+      console.warn(`Falha ao instalar cy-resolve-skills para ${agente}.${detalhe}`);
+    }
+  }
 }
 
 export async function prepararProjeto({
