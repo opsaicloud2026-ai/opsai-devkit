@@ -1,36 +1,59 @@
-import { checkbox, confirm } from "@inquirer/prompts";
+import { checkbox, input, select } from '@inquirer/prompts';
 
-export const AGENT_CHOICES = [
-  { name: "Claude Code", value: "claude" },
-  { name: "Codex", value: "codex" },
-  { name: "Kimi", value: "kimi" },
-  { name: "Antigravity", value: "antigravity" },
-  { name: "GitHub Copilot", value: "copilot" },
+const AGENTES = [
+  'Claude Code',
+  'Codex',
+  'Kimi',
+  'Antigravity',
+  'GitHub Copilot',
 ];
 
-export async function askSetupQuestions() {
-  if (process.env.OPSAI_SETUP_NONINTERACTIVE === "1") {
-    const agents = (process.env.OPSAI_SETUP_AGENTS ?? "")
-      .split(",")
-      .map((agent) => agent.trim())
-      .filter(Boolean);
+const TECH_LEADS_CLUB = 'tech-leads-club';
+const OUTRO_REPOSITORIO = 'outro';
+
+export async function perguntarConfiguracao() {
+  const agentes = await checkbox({
+    message: 'Quais agentes voce usa?',
+    choices: AGENTES.map((agente) => ({
+      name: agente,
+      value: agente,
+    })),
+    required: true,
+  });
+
+  const tipoRepositorio = await select({
+    message: 'Repositorio de skills:',
+    default: TECH_LEADS_CLUB,
+    choices: [
+      {
+        name: 'Tech Leads Club',
+        value: TECH_LEADS_CLUB,
+      },
+      {
+        name: 'Outro (digitar URL)',
+        value: OUTRO_REPOSITORIO,
+      },
+    ],
+  });
+
+  if (tipoRepositorio === OUTRO_REPOSITORIO) {
+    const url = await input({
+      message: 'URL do repositorio de skills:',
+      required: true,
+      validate: (valor) => {
+        const urlInformada = valor.trim();
+        return urlInformada.length > 0 || 'Informe a URL do repositorio.';
+      },
+    });
 
     return {
-      agents,
-      connectMcp: process.env.OPSAI_SETUP_MCP !== "0",
+      agentes,
+      skills_repo: url.trim(),
     };
   }
 
-  const agents = await checkbox({
-    message: "Quais agentes de IA você tem instalados?",
-    choices: AGENT_CHOICES,
-    pageSize: AGENT_CHOICES.length,
-  });
-
-  const connectMcp = await confirm({
-    message: "Deseja conectar o catálogo de skills via MCP?",
-    default: true,
-  });
-
-  return { agents, connectMcp };
+  return {
+    agentes,
+    skills_repo: TECH_LEADS_CLUB,
+  };
 }

@@ -1,13 +1,13 @@
 # AGENTS.md
 
-Gerado pelo `opsai-setup` em {{data}}.
+Gerado pelo `opsai-setup` em 2026-06-02T23:18:43.018Z.
 
 ## Projeto
 
 - Nome: TODO: preencher nome do projeto
-- Data: {{data}}
-- Agentes configurados: {{agentes}}
-- Repositorio de skills: {{skills_repo}}
+- Data: 2026-06-02T23:18:43.018Z
+- Agentes configurados: Claude Code, Codex, Kimi, Antigravity, GitHub Copilot
+- Repositorio de skills: tech-leads-club
 
 ## Fluxo de trabalho
 
@@ -24,7 +24,7 @@ TODO: usuario preenche depois.
 
 ## Skills
 
-- Repositorio configurado: {{skills_repo}}
+- Repositorio configurado: tech-leads-club
 - Instalacao de skills via `cy-resolve-skills` na Fase 2.
 
 ## Anti-padroes
