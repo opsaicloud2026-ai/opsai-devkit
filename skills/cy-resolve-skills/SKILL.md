@@ -29,7 +29,8 @@ Extraia:
 
 Valores aceitos para `skills_repo`:
 
-- `"tech-leads-club"`: usar CLI `npx @tech-leads-club/agent-skills list`.
+- `"tech-leads-club"`: acessar diretamente o repositorio
+  `https://github.com/tech-leads-club/agent-skills`.
 - URL GitHub, por exemplo `https://github.com/user/my-skills`: listar via GitHub
   API em `GET https://api.github.com/repos/{owner}/{repo}/contents/` e filtrar
   pastas que contem `SKILL.md`.
@@ -39,11 +40,51 @@ Valores aceitos para `skills_repo`:
 Se `.opsai-setup.json` nao existir, pare e instrua o usuario a rodar
 `opsai-setup` primeiro.
 
-## Passo 2 - Obter lista de skills disponiveis no repositorio
+## Passo 2 - Obter skills disponiveis no repositorio
 
-Com base em `skills_repo`, obtenha a lista real de skills disponiveis.
+Baseado no valor de `skills_repo` lido do `.opsai-setup.json`:
 
-Consulte `references/repo-access.md` para os comandos por tipo de repositorio.
+### Se skills_repo for "tech-leads-club":
+
+Acesse o repositorio GitHub da Tech Leads Club diretamente:
+- URL base: `https://github.com/tech-leads-club/agent-skills`
+- Liste as pastas em: `packages/skills-catalog/skills/`
+- Via API GitHub:
+  ```text
+  GET https://api.github.com/repos/tech-leads-club/agent-skills/contents/packages/skills-catalog/skills
+  ```
+- Para cada pasta (`type: "dir"`), acesse o `SKILL.md`:
+  ```text
+  GET https://raw.githubusercontent.com/tech-leads-club/agent-skills/main/packages/skills-catalog/skills/{nome}/SKILL.md
+  ```
+- Extraia do frontmatter YAML: `name` e `description`
+- Monte a lista de skills disponiveis: `{ nome, descricao }`
+
+### Se skills_repo for uma URL GitHub (contem github.com):
+
+- Extraia `owner` e `repo` da URL
+- Liste o conteudo raiz via API:
+  ```text
+  GET https://api.github.com/repos/{owner}/{repo}/contents/
+  ```
+- Identifique o padrao de organizacao das skills:
+  - Se houver pasta `skills/` → liste dentro dela
+  - Se houver `SKILL.md` na raiz de subpastas → cada subpasta e uma skill
+- Para cada skill encontrada, leia o `SKILL.md` e extraia `name` e `description`
+
+### Se skills_repo for caminho local (comeca com `/` ou `./`):
+
+- Liste as subpastas do caminho
+- Para cada subpasta que contiver `SKILL.md`, leia e extraia `name` e `description`
+
+### Regra universal:
+
+- Nunca chame CLI externo para listar skills
+- Sempre acesse a fonte diretamente (HTTP para GitHub, filesystem para local)
+- Se nao conseguir acessar o repositorio, informe o erro claramente e
+  pergunte ao usuario se quer informar outro repositorio ou pular
+
+Consulte `references/repo-access.md` para detalhes tecnicos por tipo de repositorio.
 
 Esta lista e a fonte de verdade. Nunca sugira uma skill que nao esteja nela.
 
