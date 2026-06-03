@@ -3,3 +3,9 @@ node_modules/
 .DS_Store
 .env
 .opsai-setup.json
+.claude/
+.codex/
+.github/
+.agents/
+AGENTS.md
+.opsai-setup.json

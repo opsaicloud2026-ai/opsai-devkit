@@ -5,7 +5,19 @@ import { perguntarConfiguracao, perguntarSkeeper } from './prompts.js';
 import { copyResolveSkill, prepararProjeto } from './setup.js';
 
 async function main() {
-  console.log('OpsAI Setup');
+  console.log('');
+  console.log('  ██████╗ ██████╗ ███████╗ █████╗ ██╗');
+  console.log(' ██╔═══██╗██╔══██╗██╔════╝██╔══██╗██║');
+  console.log(' ██║   ██║██████╔╝███████╗███████║██║');
+  console.log(' ██║   ██║██╔═══╝ ╚════██║██╔══██║██║');
+  console.log(' ╚██████╔╝██║     ███████║██║  ██║██║');
+  console.log('  ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝');
+  console.log('');
+  console.log('  Setup de agentes de IA para qualquer projeto');
+  console.log('');
+  console.log('─────────────────────────────────────────');
+  console.log('  v0.1.0  |  github.com/omarmiranda85/opsai-devkit');
+  console.log('');
 
   let configuracao;
   try {
