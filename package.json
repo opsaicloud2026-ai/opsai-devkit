@@ -4,7 +4,7 @@
   "description": "Configura o ambiente de desenvolvimento com agentes de IA em qualquer projeto",
   "type": "module",
   "bin": {
-    "opsai-setup": "./src/index.js"
+    "opsai-setup": "src/index.js"
   },
   "scripts": {
     "start": "node src/index.js"
@@ -17,14 +17,21 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/opsaicloud2026-ai/opsai-devkit.git"
+    "url": "git+https://github.com/opsaicloud2026-ai/opsai-devkit.git"
   },
   "homepage": "https://github.com/opsaicloud2026-ai/opsai-devkit",
   "bugs": {
     "url": "https://github.com/opsaicloud2026-ai/opsai-devkit/issues"
   },
   "keywords": [
-    "ai", "agents", "claude", "codex", "compozy", "skeeper", "setup", "developer-tools"
+    "ai",
+    "agents",
+    "claude",
+    "codex",
+    "compozy",
+    "skeeper",
+    "setup",
+    "developer-tools"
   ],
   "license": "MIT",
   "engines": {
