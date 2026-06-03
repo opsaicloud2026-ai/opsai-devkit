@@ -1,5 +1,5 @@
 import { confirm } from '@inquirer/prompts';
-import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { cp, lstat, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import path from 'node:path';
@@ -157,22 +157,58 @@ export async function copyResolveSkill({
 
   const agentes = Array.isArray(estado.agentes) ? estado.agentes : [];
 
+  const agentesSkillsDir = path.join(raizProjeto, '.agents', 'skills');
+  const destinoPrincipal = path.join(agentesSkillsDir, 'cy-resolve-skills');
+
+  if (!existsSync(destinoPrincipal)) {
+    try {
+      await mkdir(agentesSkillsDir, { recursive: true });
+      await cp(RESOLVE_SKILL_ORIGEM, destinoPrincipal, { recursive: true });
+      console.log('cy-resolve-skills instalada em .agents/skills/');
+    } catch (erro) {
+      const detalhe = erro?.message ? ` ${erro.message}` : '';
+      console.warn(`Falha ao instalar cy-resolve-skills em .agents/skills/.${detalhe}`);
+      return;
+    }
+  }
+
   for (const agente of agentes) {
     const skillsDir = resolverDiretorioSkills(agente, { raizProjeto, argv });
     if (!skillsDir) {
+      console.warn(`Diretorio de skills nao encontrado para ${agente}. Pulando.`);
       continue;
     }
 
-    const destino = path.join(skillsDir, 'cy-resolve-skills');
+    const linkPath = path.join(skillsDir, 'cy-resolve-skills');
 
-    if (existsSync(destino)) {
-      console.log(`cy-resolve-skills ja instalada para ${agente}`);
-      continue;
+    if (existsSync(linkPath)) {
+      let ehSymlink = false;
+      try {
+        const stats = await lstat(linkPath);
+        if (stats.isSymbolicLink()) {
+          ehSymlink = true;
+          console.log(`cy-resolve-skills ja instalada para ${agente}`);
+        }
+      } catch {
+        // ignora erro de lstat
+      }
+
+      if (ehSymlink) {
+        continue;
+      }
+
+      try {
+        await rm(linkPath, { recursive: true });
+      } catch (erro) {
+        const detalhe = erro?.message ? ` ${erro.message}` : '';
+        console.warn(`Falha ao remover cy-resolve-skills antiga para ${agente}.${detalhe}`);
+        continue;
+      }
     }
 
     try {
       await mkdir(skillsDir, { recursive: true });
-      await cp(RESOLVE_SKILL_ORIGEM, destino, { recursive: true });
+      await symlink(destinoPrincipal, linkPath, 'dir');
       console.log(`cy-resolve-skills instalada para ${agente}`);
     } catch (erro) {
       const detalhe = erro?.message ? ` ${erro.message}` : '';
