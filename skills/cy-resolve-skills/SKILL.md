@@ -111,17 +111,33 @@ opcao.
 
 ## Passo 7 - Instalar skills confirmadas
 
-Para cada skill confirmada, instale por agente, uma a uma.
+> **IMPORTANTE:** Nunca instale skills diretamente nas pastas de agente.
+> Sempre instale em `.agents/skills/` e crie symlinks.
+> Isso garante que todos os agentes usem a mesma versao.
+
+### 7.1 Instalar a skill centralizada
 
 Se `skills_repo` for `"tech-leads-club"`:
 
-```bash
-npx @tech-leads-club/agent-skills install -s <skill> -a <agente>
-```
+1. Instale a skill em `.agents/skills/` em vez da pasta do agente:
+
+   ```bash
+   npx @tech-leads-club/agent-skills install -s <skill> -a agents
+   ```
+
+   Se o CLI nao suportar instalação em `.agents/skills/` diretamente, use esta
+   alternativa:
+
+   ```bash
+   # Instale para claude-code (vai para .claude/skills/)
+   npx @tech-leads-club/agent-skills install -s <skill> -a claude-code
+   # Mova para .agents/skills/<skill>/
+   mv .claude/skills/<skill> .agents/skills/<skill>
+   ```
 
 Se for repositorio GitHub externo:
 
-- Instrua o usuario a instalar manualmente.
+- Instrua o usuario a instalar manualmente em `.agents/skills/<skill>/`.
 - Mostre o comando equivalente ou os passos necessarios.
 - Registre a skill na task mesmo assim.
 
@@ -131,6 +147,25 @@ Se for caminho local:
   projeto.
 - Se a convencao nao estiver clara, instrua o usuario a instalar manualmente.
 - Registre a skill na task mesmo assim.
+
+### 7.2 Criar symlinks para cada agente
+
+Para cada agente em `.opsai-setup.json["agentes"]`, crie um symlink apontando
+para `.agents/skills/<skill>/`:
+
+| Agente | Pasta de skills |
+|---|---|
+| Claude Code | `.claude/skills/` |
+| Codex | `.codex/skills/` |
+| GitHub Copilot | `.github/skills/` |
+| Antigravity | `~/.gemini/skills/` |
+| Kimi | pular (sem pasta conhecida) |
+
+```bash
+ln -s <caminho-do-projeto>/.agents/skills/<skill> <pasta-do-agente>/skills/<skill>
+```
+
+Se o symlink ja existir, pule sem erro.
 
 Falhas de instalacao nao devem interromper o processamento das outras tasks.
 Informe a falha e continue.
