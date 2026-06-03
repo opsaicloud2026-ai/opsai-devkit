@@ -30,3 +30,9 @@ TODO: usuario preenche depois.
 ## Anti-padroes
 
 TODO: usuario preenche depois.
+
+## Próximos passos
+- Projeto novo: inicie com `/cy-create-prd` no seu agente
+- Projeto existente: inicie com `/cy-resolve-skills` para mapear skills das tasks
+- Fluxo completo: cy-create-prd → cy-create-techspec → cy-create-tasks →
+  cy-resolve-skills → cy-execute-task → cy-final-verify

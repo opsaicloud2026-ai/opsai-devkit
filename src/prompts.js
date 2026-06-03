@@ -57,3 +57,37 @@ export async function perguntarConfiguracao() {
     skills_repo: TECH_LEADS_CLUB,
   };
 }
+
+export async function perguntarSkeeper() {
+  const opcao = await select({
+    message: 'Deseja configurar o repositório de specs (Skeeper)?',
+    choices: [
+      {
+        name: 'Criar automaticamente a partir deste repositório',
+        value: 'criar-automaticamente',
+      },
+      {
+        name: 'Informar URL de um repositório existente',
+        value: 'informar-url',
+      },
+      {
+        name: 'Pular por agora',
+        value: 'pular',
+      },
+    ],
+  });
+
+  if (opcao === 'informar-url') {
+    const url = await input({
+      message: 'URL do repositório de specs:',
+      required: true,
+      validate: (valor) => {
+        const urlInformada = valor.trim();
+        return urlInformada.length > 0 || 'Informe a URL do repositório.';
+      },
+    });
+    return { opcao, url: url.trim() };
+  }
+
+  return { opcao, url: null };
+}
