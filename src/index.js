@@ -47,7 +47,7 @@ async function main() {
     console.warn(`Falha inesperada na instalacao. ${erro?.message ?? erro}`);
   }
 
-  await runCompozySetup();
+  await runCompozySetup(configuracao.agentes);
 
   let skeeperStatus = 'pendente';
   if (skeeperConfig.opcao !== 'pular') {

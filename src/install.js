@@ -104,15 +104,31 @@ export async function instalarFerramentas() {
   };
 }
 
-export async function runCompozySetup() {
+function normalizarAgenteCompozy(agente) {
+  const mapa = {
+    'Claude Code': 'claude',
+    'Codex': 'codex',
+    'Kimi': 'kimi',
+    'Antigravity': 'antigravity',
+    'GitHub Copilot': 'copilot',
+  };
+  return mapa[agente] || agente;
+}
+
+export async function runCompozySetup(agentes) {
   if (!(await comandoExiste('compozy'))) {
     console.warn('Compozy nao encontrado. Pulando compozy setup.');
     return;
   }
 
+  const args = ['setup', '--yes'];
+  for (const agente of agentes) {
+    args.push('--agent', normalizarAgenteCompozy(agente));
+  }
+
   try {
     console.log('Executando compozy setup...');
-    await execFileAsync('compozy', ['setup', '--all'], {
+    await execFileAsync('compozy', args, {
       timeout: 60000,
       windowsHide: true,
     });
