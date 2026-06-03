@@ -91,3 +91,21 @@ export async function perguntarSkeeper() {
 
   return { opcao, url: null };
 }
+
+export async function perguntarInicializarGit() {
+  const resposta = await select({
+    message: 'Git não encontrado nesta pasta.',
+    choices: [
+      {
+        name: 'Inicializar Git agora (git init)',
+        value: 'inicializar',
+      },
+      {
+        name: 'Pular versionamento por agora',
+        value: 'pular',
+      },
+    ],
+  });
+
+  return resposta;
+}

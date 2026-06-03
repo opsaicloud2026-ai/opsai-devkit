@@ -4,6 +4,7 @@ import { access } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
+import { perguntarInicializarGit } from './prompts.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -146,8 +147,10 @@ async function obterRemoteOrigin() {
       windowsHide: true,
     });
     return stdout.trim();
-  } catch (erro) {
-    return null;
+  } catch {
+    const erro = new Error('Git nao encontrado ou sem remote origin.');
+    erro.code = 'NO_GIT';
+    throw erro;
   }
 }
 
@@ -179,8 +182,28 @@ export async function runSkeeperInit(opcao, urlInformada) {
   }
 
   if (opcao === 'criar-automaticamente') {
-    const originUrl = await obterRemoteOrigin();
-    if (!originUrl) {
+    let originUrl;
+    try {
+      originUrl = await obterRemoteOrigin();
+    } catch (erro) {
+      if (erro.code === 'NO_GIT') {
+        const resposta = await perguntarInicializarGit();
+        if (resposta === 'inicializar') {
+          try {
+            await execFileAsync('git', ['init'], {
+              timeout: 15000,
+              windowsHide: true,
+            });
+            console.log("Git inicializado. Configure o remote com 'git remote add origin <url>' e rode 'skeeper init <url>' depois.");
+          } catch (gitErro) {
+            const detalhe = gitErro?.message ? ` ${gitErro.message}` : '';
+            console.warn(`git init falhou.${detalhe}`);
+          }
+          return 'pendente';
+        }
+        console.log("Versionamento pulado. Rode 'skeeper init <url>' quando configurar o Git.");
+        return 'pendente';
+      }
       console.warn('Nao foi possivel detectar o remote origin. Crie o repositorio de specs manualmente e rode: skeeper init <url>');
       return 'pendente';
     }
