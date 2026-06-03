@@ -1,7 +1,7 @@
 {
-  "name": "opsai-setup",
+  "name": "@opsaicloud/setup",
   "version": "0.1.0",
-  "description": "Configura projetos com os agentes, skills e ferramentas do OpsAI",
+  "description": "Configura o ambiente de desenvolvimento com agentes de IA em qualquer projeto",
   "type": "module",
   "bin": {
     "opsai-setup": "./src/index.js"
@@ -9,11 +9,27 @@
   "scripts": {
     "start": "node src/index.js"
   },
+  "files": [
+    "src/",
+    "skills/",
+    "templates/",
+    "README.md"
+  ],
   "repository": {
     "type": "git",
-    "url": "https://omarmiranda85@dev.azure.com/omarmiranda85/opsai-devkit/_git/skills"
+    "url": "https://github.com/opsaicloud2026-ai/opsai-devkit.git"
   },
+  "homepage": "https://github.com/opsaicloud2026-ai/opsai-devkit",
+  "bugs": {
+    "url": "https://github.com/opsaicloud2026-ai/opsai-devkit/issues"
+  },
+  "keywords": [
+    "ai", "agents", "claude", "codex", "compozy", "skeeper", "setup", "developer-tools"
+  ],
   "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "@inquirer/prompts": "^8.5.2"
   }

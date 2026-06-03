@@ -16,7 +16,7 @@ async function main() {
   console.log('  Setup de agentes de IA para qualquer projeto');
   console.log('');
   console.log('─────────────────────────────────────────');
-  console.log('  v0.1.0  |  github.com/omarmiranda85/opsai-devkit');
+  console.log('  v0.1.0  |  github.com/opsaicloud2026-ai/opsai-devkit');
   console.log('');
 
   let configuracao;
