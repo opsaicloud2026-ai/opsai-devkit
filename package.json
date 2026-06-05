@@ -1,6 +1,6 @@
 {
   "name": "@opsaicloud/setup",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Configura o ambiente de desenvolvimento com agentes de IA em qualquer projeto",
   "type": "module",
   "bin": {

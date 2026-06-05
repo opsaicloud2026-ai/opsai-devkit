@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 
+import { createRequire } from 'node:module';
 import { instalarFerramentas, runCompozySetup, runSkeeperInit } from './install.js';
 import { perguntarConfiguracao, perguntarSkeeper } from './prompts.js';
 import { copyResolveSkill, prepararProjeto } from './setup.js';
+
+const require = createRequire(import.meta.url);
+const { version } = require('../package.json');
 
 async function main() {
   console.log('');
@@ -16,7 +20,7 @@ async function main() {
   console.log('  Setup de agentes de IA para qualquer projeto');
   console.log('');
   console.log('─────────────────────────────────────────');
-  console.log('  v0.1.0  |  github.com/opsaicloud2026-ai/opsai-devkit');
+  console.log(`  v${version}  |  github.com/opsaicloud2026-ai/opsai-devkit`);
   console.log('');
 
   let configuracao;
