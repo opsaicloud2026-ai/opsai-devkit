@@ -108,9 +108,9 @@ function normalizarAgenteCompozy(agente) {
   const mapa = {
     'Claude Code': 'claude',
     'Codex': 'codex',
-    'Kimi': 'kimi',
+    'Kimi': 'kimi-cli',
     'Antigravity': 'antigravity',
-    'GitHub Copilot': 'copilot',
+    'GitHub Copilot': 'github-copilot',
   };
   return mapa[agente] || agente;
 }
