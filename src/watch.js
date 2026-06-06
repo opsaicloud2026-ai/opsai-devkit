@@ -12,10 +12,16 @@ const tasksDir = path.join(compozyDir, 'tasks');
 const debounceMs = 500;
 const timers = new Map();
 const activeWatchers = new Set();
+const pollingFiles = new Map();
 
 let watchingTasks = false;
 let bootstrapWatcher = null;
 let bootstrapDirAtual = null;
+let pollingInterval = null;
+
+function isWindowsMount(caminho) {
+  return caminho.startsWith('/mnt/') && caminho.length > 6;
+}
 
 function isTasksFile(filePath) {
   return filePath.endsWith('_tasks.md');
@@ -40,6 +46,22 @@ function rememberWatcher(watcher) {
   return watcher;
 }
 
+async function injectAndLog(filePath) {
+  try {
+    const injetado = await injectSkillsReminder(filePath);
+    if (injetado) {
+      console.log(`[opsai-watch] _tasks.md detectado: ${filePath}`);
+      console.log('[opsai-watch] Lembrete de cy-resolve-skills injetado.');
+    }
+  } catch (erro) {
+    if (erro?.code === 'ENOENT') {
+      return;
+    }
+
+    console.warn(`[opsai-watch] Falha ao injetar lembrete em ${filePath}. ${erro?.message ?? erro}`);
+  }
+}
+
 function debounceInject(filePath) {
   if (!isTasksFile(filePath)) {
     return;
@@ -54,22 +76,87 @@ function debounceInject(filePath) {
   const timer = setTimeout(async () => {
     timers.delete(normalizedPath);
 
-    try {
-      const injetado = await injectSkillsReminder(normalizedPath);
-      if (injetado) {
-        console.log(`[opsai-watch] _tasks.md detectado: ${normalizedPath}`);
-        console.log('[opsai-watch] Lembrete de cy-resolve-skills injetado.');
-      }
-    } catch (erro) {
-      if (erro?.code === 'ENOENT') {
-        return;
-      }
-
-      console.warn(`[opsai-watch] Falha ao injetar lembrete em ${normalizedPath}. ${erro?.message ?? erro}`);
-    }
+    await injectAndLog(normalizedPath);
   }, debounceMs);
 
   timers.set(normalizedPath, timer);
+}
+
+async function listTasksFiles() {
+  let entries;
+  try {
+    entries = await readdir(tasksDir, { recursive: true });
+  } catch (erro) {
+    if (erro?.code === 'ENOENT') {
+      return [];
+    }
+
+    throw erro;
+  }
+
+  return entries
+    .map((entry) => path.join(tasksDir, entry.toString()))
+    .filter(isTasksFile);
+}
+
+async function scanTasksFiles() {
+  let filePaths;
+  try {
+    filePaths = await listTasksFiles();
+  } catch (erro) {
+    console.warn(`[opsai-watch] Falha ao listar _tasks.md. ${erro?.message ?? erro}`);
+    return;
+  }
+
+  const encontrados = new Set(filePaths);
+  for (const filePath of filePaths) {
+    let stats;
+    try {
+      stats = await stat(filePath);
+    } catch (erro) {
+      if (erro?.code === 'ENOENT') {
+        continue;
+      }
+
+      console.warn(`[opsai-watch] Falha ao ler status de ${filePath}. ${erro?.message ?? erro}`);
+      continue;
+    }
+
+    if (!stats.isFile()) {
+      continue;
+    }
+
+    const mtime = stats.mtimeMs;
+    const mtimeAnterior = pollingFiles.get(filePath);
+    if (mtimeAnterior === undefined || mtimeAnterior !== mtime) {
+      await injectAndLog(filePath);
+      pollingFiles.set(filePath, mtime);
+    }
+  }
+
+  for (const filePath of pollingFiles.keys()) {
+    if (!encontrados.has(filePath)) {
+      pollingFiles.delete(filePath);
+    }
+  }
+}
+
+function startPollingWatcher() {
+  if (pollingInterval) {
+    return;
+  }
+
+  console.log('[opsai-watch] Modo polling ativo (WSL/Windows mount)');
+
+  pollingInterval = setInterval(() => {
+    scanTasksFiles().catch((erro) => {
+      console.warn(`[opsai-watch] Polling falhou. ${erro?.message ?? erro}`);
+    });
+  }, 1000);
+
+  scanTasksFiles().catch((erro) => {
+    console.warn(`[opsai-watch] Polling inicial falhou. ${erro?.message ?? erro}`);
+  });
 }
 
 function pathFromWatchEvent(baseDir, filename) {
@@ -169,15 +256,28 @@ async function main() {
   console.log('Pressione Ctrl+C para parar.');
 
   if (existsSync(tasksDir)) {
-    await startTasksWatcher();
+    if (isWindowsMount(cwd)) {
+      startPollingWatcher();
+    } else {
+      await startTasksWatcher();
+    }
     return;
   }
 
   console.log('[opsai-watch] Aguardando .compozy/tasks/ ser criado...');
+  if (isWindowsMount(cwd)) {
+    startPollingWatcher();
+    return;
+  }
+
   startBootstrapWatcher();
 }
 
 process.on('SIGINT', () => {
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+  }
+
   for (const watcher of activeWatchers) {
     watcher.close();
   }
